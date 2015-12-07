@@ -31,6 +31,7 @@ function indent() {
 
 APT_CACHE_DIR="$CACHE_DIR/apt/cache"
 APT_STATE_DIR="$CACHE_DIR/apt/state"
+APT_KEYRING_FILE="$BUILD_DIR/apt-trusted.gpg"
 
 mkdir -p "$APT_CACHE_DIR/archives/partial"
 mkdir -p "$APT_STATE_DIR/lists/partial"
@@ -43,8 +44,11 @@ if [[ -f $BUILD_DIR/Aptfile.sources ]]; then
 fi
 
 if [[ -f $BUILD_DIR/Aptfile.pubkeys ]]; then
+  cp /etc/apt/trusted.gpg "$APT_KEYRING_FILE" 2>/dev/null || true
+  APT_OPTIONS="$APT_OPTIONS -o dir::etc::trusted=$APT_KEYRING_FILE"
+
   cat $BUILD_DIR/Aptfile.pubkeys | while read KEYSERVER KEYID; do
-    apt-key adv --keyserver $KEYSERVER --recv-keys $KEYID
+    apt-key --keyring "$APT_KEYRING_FILE" adv --keyserver $KEYSERVER --recv-keys $KEYID
   done
 fi
 
