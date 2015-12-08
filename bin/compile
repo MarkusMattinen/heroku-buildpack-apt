@@ -75,8 +75,25 @@ for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
   dpkg -x $DEB $BUILD_DIR/.apt/
 done
 
-topic "Writing profile script"
 mkdir -p $BUILD_DIR/.profile.d
+
+if [[ -f $BUILD_DIR/Aptfile.locales ]]; then
+  mkdir -p $BUILD_DIR/.apt/usr/lib/locale
+
+  cat $BUILD_DIR/Aptfile.locales | while read LOCALE CHARSET; do
+    INPUT=`echo $LOCALE | sed 's/\([^.]*\)[^@]*\(.*\)/\1\2/'`
+    topic "Generating locale $LOCALE"
+    localedef -i $INPUT -c -f $CHARSET $BUILD_DIR/.apt/usr/lib/locale/$LOCALE
+  done
+  
+  cat <<EOF >$BUILD_DIR/.profile.d/001_locale.sh
+export LOCPATH="\$HOME/.apt/usr/lib/locale"
+EOF
+
+  export LOCPATH="$BUILD_DIR/.apt/usr/lib/locale"
+fi
+
+topic "Writing profile script"
 cat <<EOF >$BUILD_DIR/.profile.d/000_apt.sh
 export PATH="\$HOME/.apt/usr/bin:\$HOME/.apt/usr/sbin:\$HOME/.apt/sbin:\$PATH"
 export LD_LIBRARY_PATH="\$HOME/.apt/usr/lib/x86_64-linux-gnu:\$HOME/.apt/usr/lib/i386-linux-gnu:\$HOME/.apt/usr/lib:\$HOME/.apt/lib:\$LD_LIBRARY_PATH"
@@ -96,4 +113,4 @@ export CPPPATH="$INCLUDE_PATH"
 export PKG_CONFIG_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 #give environment to later buildpacks
-export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"
+export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH|LOCPATH)='  > "$LP_DIR/export"
