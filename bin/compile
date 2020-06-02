@@ -60,11 +60,13 @@ apt-get $APT_OPTIONS update | indent
 
 # Cleanup old .deb packages
 cd $APT_CACHE_DIR/archives
-ls -1 *.deb | cut -d_ -f1 | while read PACKAGE; do
-  ls -v1 $PACKAGE* | head -n -1 | while read PACKAGEVERSION; do
-    rm $PACKAGEVERSION;
-  done;
-done
+if [[ -f *.deb ]]; then
+  ls -1 *.deb | cut -d_ -f1 | while read PACKAGE; do
+    ls -v1 $PACKAGE* | head -n -1 | while read PACKAGEVERSION; do
+      rm $PACKAGEVERSION;
+    done
+  done
+fi
 
 for PACKAGE in $(cat $BUILD_DIR/Aptfile); do
   if [[ $PACKAGE == *deb ]]; then
