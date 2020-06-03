@@ -108,6 +108,8 @@ EOF
   export LOCPATH="$BUILD_DIR/.apt/usr/lib/locale"
 fi
 
+chmod 755 $BUILD_DIR/.apt
+
 topic "Writing profile script"
 cat <<EOF >$BUILD_DIR/.profile.d/000_apt.sh
 export PATH="\$HOME/.apt/bin:\$HOME/.apt/usr/bin:\$HOME/.apt/usr/sbin:\$HOME/.apt/sbin:\$HOME/.apt/usr/local/bin:\$PATH"
